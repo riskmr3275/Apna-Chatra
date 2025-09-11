@@ -28,20 +28,20 @@ const Header = () => {
            {/* Logo with tagline */}
 <div className="flex items-center space-x-3">
   {/* Logo */}
-  <div className="bg-white rounded-full p-2 shadow-md">
+  <div className="bg-white rounded-full p-1 shadow-md">
     <img
       src={logo}
       alt="Logo"
-      className="w-16 h-16 md:w-20 md:h-20 object-contain"
+      className="w-8 h-8 md:w-10 md:h-10 object-contain"
     />
   </div>
 
   {/* Tagline */}
   <div className="flex flex-col leading-tight">
-    <span className="text-sm md:text-xl font-extrabold text-red-600 tracking-wide">
+    <span className="text-xs md:text-lg font-extrabold text-red-600 tracking-wide">
       Apna Shahar,
     </span>
-    <span className="text-sm md:text-xl font-extrabold text-white tracking-wide">
+    <span className="text-xs md:text-lg font-extrabold text-white tracking-wide">
       Apna Khabar
     </span>
   </div>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AdCard from './AdCard';
 
 const Sidebar = ({ position = 'left' }) => {
   const [activeTab, setActiveTab] = useState('trending');
@@ -80,35 +81,21 @@ const Sidebar = ({ position = 'left' }) => {
   if (position === 'left') {
     return (
       <div className="space-y-6">
-        {/* Quick Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-4">
-          <h3 className="font-bold text-gray-800 mb-3">फिल्टर</h3>
-          <div className="space-y-2">
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-between">
-              <span>सभी समाचार</span>
-              <span className="text-xs text-gray-500">156</span>
-            </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-between">
-              <span>ट्रेंडिंग</span>
-              <span className="text-xs text-red-600">🔥 23</span>
-            </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-between">
-              <span>फॉलो किए गए</span>
-              <span className="text-xs text-gray-500">12</span>
-            </button>
-            <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-between">
-              <span>बुकमार्क</span>
-              <span className="text-xs text-gray-500">8</span>
-            </button>
-          </div>
-        </div>
+        {/* Advertisement */}
+        <AdCard
+          title="डिजिटल मार्केटिंग कोर्स - 70% छूट"
+          description="सिर्फ 3 महीने में बनें डिजिटल मार्केटिंग एक्सपर्ट। जॉब गारंटी के साथ।"
+          image="/ad.webp"
+          link="https://example.com/digital-marketing"
+          sponsor="शिक्षा - प्रायोजित"
+        />
 
         {/* Categories */}
         <div className="bg-white rounded-lg shadow-sm p-4">
           <h3 className="font-bold text-gray-800 mb-3">कैटेगरी</h3>
           <div className="space-y-2">
             {categories.map((category, index) => (
-              <button 
+              <button
                 key={index}
                 className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors flex items-center justify-between"
               >
@@ -154,23 +141,21 @@ const Sidebar = ({ position = 'left' }) => {
       {/* Trending & Hot Topics Tabs */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <div className="flex border-b">
-          <button 
+          <button
             onClick={() => setActiveTab('trending')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === 'trending' 
-                ? 'bg-red-600 text-white' 
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'trending'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 hover:text-gray-800'
+              }`}
           >
             ट्रेंडिंग
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('hot')}
-            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === 'hot' 
-                ? 'bg-red-600 text-white' 
-                : 'text-gray-600 hover:text-gray-800'
-            }`}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${activeTab === 'hot'
+              ? 'bg-red-600 text-white'
+              : 'text-gray-600 hover:text-gray-800'
+              }`}
           >
             हॉट टॉपिक्स
           </button>

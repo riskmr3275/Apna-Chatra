@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import NewsCard from './NewsCard';
 import AuthModal from './AuthModal';
+import AdCard from './AdCard';
 
 const NewsFeed = ({ filter, searchQuery }) => {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -110,6 +111,132 @@ const NewsFeed = ({ filter, searchQuery }) => {
     return 0;
   });
 
+  // Ad data for insertion between news
+  const adData = [
+    {
+      title: "ऑनलाइन शॉपिंग - 80% तक छूट",
+      description: "सभी कैटेगरी में भारी छूट। फ्री डिलीवरी और आसान रिटर्न।",
+      link: "https://example.com/shopping",
+      sponsor: "ई-कॉमर्स - प्रायोजित"
+    },
+    {
+      title: "पर्सनल लोन - तुरंत अप्रूवल",
+      description: "2 लाख तक का लोन, कम ब्याज दर। 5 मिनट में अप्रूवल।",
+      link: "https://example.com/loan",
+      sponsor: "फाइनेंस - प्रायोजित"
+    },
+    {
+      title: "हेल्थ इंश्योरेंस - फैमिली प्लान",
+      description: "पूरे परिवार के लिए 5 लाख का कवर। कैशलेस ट्रीटमेंट।",
+      link: "https://example.com/insurance",
+      sponsor: "बीमा - प्रायोजित"
+    },
+    {
+      title: "ऑनलाइन कोर्स - स्किल डेवलपमेंट",
+      description: "प्रोग्रामिंग, डिजाइन, मार्केटिंग सीखें। सर्टिफिकेट के साथ।",
+      link: "https://example.com/courses",
+      sponsor: "एजुकेशन - प्रायोजित"
+    }
+  ];
+
+  // Function to render news with ads inserted after every 4 news items
+  const renderNewsWithAds = () => {
+    const items = [];
+    
+    sortedNews.forEach((news, index) => {
+      // Add news item
+      items.push(
+        <div key={`news-${news.id}`} className="bg-white rounded-lg shadow overflow-hidden">
+          {/* Reporter Info */}
+          <div className="p-4 pb-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">
+                    {news.reporter.charAt(0)}
+                  </span>
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{news.reporter}</p>
+                  <div className="flex items-center space-x-2 text-xs text-gray-500">
+                    <span>{news.timestamp}</span>
+                    <span>•</span>
+                    <span className="flex items-center">
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {news.location}
+                    </span>
+                    {news.isTrending && (
+                      <>
+                        <span>•</span>
+                        <span className="text-red-600 font-semibold">🔥 ट्रेंडिंग</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button 
+                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
+                    news.isFollowing 
+                      ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                      : 'bg-red-600 text-white hover:bg-red-700'
+                  }`}
+                >
+                  {news.isFollowing ? "Following" : 'Follow'}
+                </button>
+                <button className="text-gray-400 hover:text-gray-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* News Content */}
+          <NewsCard 
+            {...news}
+            onSignInClick={() => setShowAuthModal(true)}
+            showSocialActions={true}
+            isInFeed={true}
+          />
+
+          {/* Tags */}
+          <div className="px-4 pb-4">
+            <div className="flex flex-wrap gap-2">
+              {news.tags.map((tag, tagIndex) => (
+                <span 
+                  key={tagIndex}
+                  className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs hover:bg-gray-200 cursor-pointer"
+                >
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      // Add ad after every 4 news items (index 3, 7, 11, etc.)
+      if ((index + 1) % 4 === 0 && index < sortedNews.length - 1) {
+        const adIndex = Math.floor(index / 4) % adData.length;
+        items.push(
+          <div key={`ad-${index}`} className="my-6">
+            <AdCard 
+              {...adData[adIndex]}
+              image="/ad.webp"
+            />
+          </div>
+        );
+      }
+    });
+
+    return items;
+  };
+
   return (
     <div className="space-y-6">
       {/* Sort Options */}
@@ -140,80 +267,7 @@ const NewsFeed = ({ filter, searchQuery }) => {
           </div>
         </div>
       ) : (
-        sortedNews.map((news) => (
-          <div key={news.id} className="bg-white rounded-lg shadow overflow-hidden">
-            {/* Reporter Info */}
-            <div className="p-4 pb-0">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">
-                      {news.reporter.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-800">{news.reporter}</p>
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <span>{news.timestamp}</span>
-                      <span>•</span>
-                      <span className="flex items-center">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {news.location}
-                      </span>
-                      {news.isTrending && (
-                        <>
-                          <span>•</span>
-                          <span className="text-red-600 font-semibold">🔥 ट्रेंडिंग</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <button 
-                    className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                      news.isFollowing 
-                        ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-                        : 'bg-red-600 text-white hover:bg-red-700'
-                    }`}
-                  >
-                    {news.isFollowing ? 'फॉलो किया गया' : 'फॉलो करें'}
-                  </button>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* News Content */}
-            <NewsCard 
-              {...news}
-              onSignInClick={() => setShowAuthModal(true)}
-              showSocialActions={true}
-              isInFeed={true}
-            />
-
-            {/* Tags */}
-            <div className="px-4 pb-4">
-              <div className="flex flex-wrap gap-2">
-                {news.tags.map((tag, index) => (
-                  <span 
-                    key={index}
-                    className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs hover:bg-gray-200 cursor-pointer"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        ))
+        renderNewsWithAds()
       )}
 
       <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
