@@ -51,7 +51,28 @@ const NewsCard = ({
   const handleComment = (e) => {
     e.stopPropagation();
     // Navigate to news detail page with comments section opened
-    navigate(`/news/${id || 1}?comments=true`);
+    navigate(`/news/${id || 1}?comments=true`, {
+      state: {
+        newsData: {
+          id: id || 1,
+          title,
+          image,
+          description,
+          category,
+          timestamp,
+          reporter,
+          location,
+          likes,
+          comments,
+          shares,
+          isBookmarked,
+          hasVideo,
+          isMainNews,
+          showSocialActions,
+          isInFeed
+        }
+      }
+    });
   };
 
   const handleBookmark = (e) => {
@@ -65,7 +86,30 @@ const NewsCard = ({
   };
 
   const handleCardClick = () => {
-    navigate(`/news/${id || 1}`);
+    // Pass complete news data through navigation state
+    navigate(`/news/${id || 1}`, {
+      state: {
+        newsData: {
+          id: id || 1,
+          title,
+          image,
+          description,
+          category,
+          timestamp,
+          reporter,
+          location,
+          likes,
+          comments,
+          shares,
+          isBookmarked,
+          // Add any additional props that might be passed
+          hasVideo,
+          isMainNews,
+          showSocialActions,
+          isInFeed
+        }
+      }
+    });
   };
 
   // Get current date and time

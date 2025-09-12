@@ -1,101 +1,65 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNews } from '../context/NewsContext';
 import NewsCard from './NewsCard';
 import AuthModal from './AuthModal';
 import AdCard from './AdCard';
 
 const NewsFeed = ({ filter, searchQuery }) => {
+  const { 
+    getNews, 
+    loadMoreNews, 
+    getPaginatedNews, 
+    currentPage, 
+    hasMore, 
+    loading, 
+    error,
+    isCacheValid 
+  } = useNews();
+  
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [sortBy, setSortBy] = useState('latest');
+  const [displayedNews, setDisplayedNews] = useState([]);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef();
+  const lastNewsElementRef = useRef();
 
-  const newsData = [
-    {
-      id: 1,
-      title: "सिर्फ Gen-Z रिपोर्ट से नहीं बनेगा काम, जानें- कैसे सुशीला कार्की बन सकती है 'नेपाल PM'",
-      image: "/temp.webp",
-      description: "नेपाल में राजनीतिक उथल-पुथल के बीच युवाओं का बढ़ता प्रभाव और नई सरकार की संभावनाएं।",
-      category: "राजनीति",
-      location: "नेपाल",
-      tags: ["नेपाल", "राजनीति", "Gen-Z", "सुशीला कार्की"],
-      timestamp: "2 घंटे पहले",
-      reporter: "राज कुमार",
-      isFollowing: false,
-      likes: 156,
-      comments: 23,
-      shares: 12,
-      isBookmarked: false,
-      isTrending: true
-    },
-    {
-      id: 2,
-      title: "भारत में 27 गेंद में ही UAE को 9 विकेट से हराया, एशिया कप में शानदार जीत",
-      image: "/temp.webp",
-      description: "टीम इंडिया का दमदार प्रदर्शन, फैंस में खुशी की लहर। कप्तान की रणनीति सफल।",
-      category: "खेल",
-      location: "दुबई",
-      tags: ["क्रिकेट", "भारत", "UAE", "एशिया कप"],
-      timestamp: "3 घंटे पहले",
-      reporter: "स्पोर्ट्स डेस्क",
-      isFollowing: true,
-      likes: 289,
-      comments: 45,
-      shares: 67,
-      isBookmarked: true,
-      isTrending: true
-    },
-    {
-      id: 3,
-      title: "Apple के AirPods प्रो3 करेंगे आपका हार्ट रेट मॉनिटर, नया फीचर लॉन्च",
-      image: "/temp.webp",
-      description: "तकनीक की दुनिया में नया कदम, स्वास्थ्य की निगरानी होगी आसान। कीमत और फीचर्स की जानकारी।",
-      category: "तकनीक",
-      location: "कैलिफोर्निया",
-      tags: ["Apple", "AirPods", "स्वास्थ्य", "तकनीक"],
-      timestamp: "4 घंटे पहले",
-      reporter: "टेक रिपोर्टर",
-      isFollowing: false,
-      likes: 134,
-      comments: 18,
-      shares: 25,
-      isBookmarked: false,
-      isTrending: false
-    },
-    {
-      id: 4,
-      title: "हिमाचल प्रदेश बना देश का पूर्ण साक्षर राज्य, 99.3% साक्षरता दर हासिल",
-      image: "/temp.webp",
-      description: "शिक्षा के क्षेत्र में ऐतिहासिक उपलब्धि, अन्य राज्यों के लिए मिसाल। मुख्यमंत्री का बयान।",
-      category: "शिक्षा",
-      location: "हिमाचल प्रदेश",
-      tags: ["शिक्षा", "साक्षरता", "हिमाचल", "उपलब्धि"],
-      timestamp: "5 घंटे पहले",
-      reporter: "शिक्षा संवाददाता",
-      isFollowing: true,
-      likes: 201,
-      comments: 31,
-      shares: 89,
-      isBookmarked: true,
-      isTrending: false
-    },
-    {
-      id: 5,
-      title: "GST कटौती से कारों की कीमतों में बड़ी गिरावट, ग्राहकों को मिलेगा फायदा",
-      image: "/temp.webp",
-      description: "ऑटो सेक्टर में नई उम्मीद, खरीदारी का सुनहरा मौका। कौन सी कारें होंगी सस्ती।",
-      category: "व्यापार",
-      location: "नई दिल्ली",
-      tags: ["GST", "कार", "कीमत", "व्यापार"],
-      timestamp: "6 घंटे पहले",
-      reporter: "बिजनेस डेस्क",
-      isFollowing: false,
-      likes: 178,
-      comments: 27,
-      shares: 34,
-      isBookmarked: false,
-      isTrending: true
-    }
-  ];
+  // Initialize news data on component mount
+  useEffect(() => {
+    const initializeNews = async () => {
+      const news = await getNews();
+      setDisplayedNews(news);
+    };
+    
+    initializeNews();
+  }, [getNews]);
 
-  const filteredNews = newsData.filter(news => {
+  // Update displayed news when pagination changes
+  useEffect(() => {
+    const paginatedNews = getPaginatedNews(currentPage);
+    setDisplayedNews(paginatedNews);
+  }, [currentPage, getPaginatedNews]);
+
+  // Infinite scroll observer
+  const lastNewsElementCallback = useCallback((node) => {
+    if (loading || isLoadingMore) return;
+    if (observerRef.current) observerRef.current.disconnect();
+    
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore) {
+        setIsLoadingMore(true);
+        loadMoreNews();
+        setTimeout(() => setIsLoadingMore(false), 1000);
+      }
+    }, {
+      threshold: 0.1,
+      rootMargin: '100px'
+    });
+    
+    if (node) observerRef.current.observe(node);
+  }, [loading, isLoadingMore, hasMore, loadMoreNews]);
+
+  // Filter and sort news
+  const filteredNews = displayedNews.filter(news => {
     if (filter === 'trending' && !news.isTrending) return false;
     if (filter === 'bookmarked' && !news.isBookmarked) return false;
     if (filter === 'following' && !news.isFollowing) return false;
@@ -114,16 +78,10 @@ const NewsFeed = ({ filter, searchQuery }) => {
   // Ad data for insertion between news
   const adData = [
     {
-      title: "ऑनलाइन शॉपिंग - 80% तक छूट",
-      description: "सभी कैटेगरी में भारी छूट। फ्री डिलीवरी और आसान रिटर्न।",
-      link: "https://example.com/shopping",
-      sponsor: "ई-कॉमर्स - प्रायोजित"
-    },
-    {
-      title: "पर्सनल लोन - तुरंत अप्रूवल",
-      description: "2 लाख तक का लोन, कम ब्याज दर। 5 मिनट में अप्रूवल।",
-      link: "https://example.com/loan",
-      sponsor: "फाइनेंस - प्रायोजित"
+      title: "क्रिप्टो ट्रेडिंग - 50% बोनस",
+      description: "अब भारत में सुरक्षित क्रिप्टो ट्रेडिंग। साइन अप करें और 50% बोनस पाएं।",
+      link: "https://example.com/crypto",
+      sponsor: "क्रिप्टो - प्रायोजित"
     },
     {
       title: "हेल्थ इंश्योरेंस - फैमिली प्लान",
@@ -225,52 +183,137 @@ const NewsFeed = ({ filter, searchQuery }) => {
         const adIndex = Math.floor(index / 4) % adData.length;
         items.push(
           <div key={`ad-${index}`} className="my-6">
-            <AdCard 
-              {...adData[adIndex]}
-              image="/ad.webp"
-            />
+            <AdCard {...adData[adIndex]} />
           </div>
         );
+      }
+
+      // Add infinite scroll observer to the last few items
+      if (index === sortedNews.length - 3) {
+        items[items.length - 1] = React.cloneElement(items[items.length - 1], {
+          ref: lastNewsElementCallback
+        });
       }
     });
 
     return items;
   };
 
+  // Loading state
+  if (loading && displayedNews.length === 0) {
+    return (
+      <div className="space-y-4">
+        {[...Array(6)].map((_, index) => (
+          <div key={index} className="bg-white rounded-lg shadow p-4 animate-pulse">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
+              <div className="space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-24"></div>
+                <div className="h-3 bg-gray-300 rounded w-32"></div>
+              </div>
+            </div>
+            <div className="h-48 bg-gray-300 rounded mb-4"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-gray-300 rounded"></div>
+              <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Error state
+  if (error && displayedNews.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center">
+        <div className="text-red-500 mb-4">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">समाचार लोड करने में समस्या</h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          पुनः प्रयास करें
+        </button>
+      </div>
+    );
+  }
+
+  // No news found
+  if (sortedNews.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-8 text-center">
+        <div className="text-gray-400 mb-4">
+          <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+          </svg>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">कोई समाचार नहीं मिला</h3>
+        <p className="text-gray-600">
+          {searchQuery ? `"${searchQuery}" के लिए कोई परिणाम नहीं मिला` : 'इस फिल्टर के लिए कोई समाचार उपलब्ध नहीं है'}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Sort Options */}
-      <div className="bg-white rounded-lg shadow-sm p-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-800">न्यूज़ फीड</h2>
-          <select 
-            value={sortBy} 
+      <div className="flex items-center justify-between bg-white rounded-lg shadow p-4">
+        <div className="flex items-center space-x-4">
+          <span className="text-sm font-medium text-gray-700">सॉर्ट करें:</span>
+          <select
+            value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="text-sm border border-gray-300 rounded px-3 py-1 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
-            <option value="latest">New</option>
-            <option value="popular">Most Viewed</option>
-            <option value="trending">Trending</option>
+            <option value="latest">नवीनतम</option>
+            <option value="popular">लोकप्रिय</option>
+            <option value="trending">ट्रेंडिंग</option>
           </select>
+        </div>
+        <div className="text-sm text-gray-500">
+          {displayedNews.length} समाचार दिखाए जा रहे हैं
+          {isCacheValid && <span className="ml-2 text-green-600">• कैश्ड</span>}
         </div>
       </div>
 
       {/* News Feed */}
-      {sortedNews.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-          <div className="text-gray-500">
-            <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-            <p className="text-lg">कोई समाचार नहीं मिला</p>
-            <p className="text-sm">अपने फिल्टर बदलकर देखें</p>
+      <div className="space-y-6">
+        {renderNewsWithAds()}
+      </div>
+
+      {/* Loading More Indicator */}
+      {isLoadingMore && (
+        <div className="flex justify-center py-8">
+          <div className="flex items-center space-x-2 text-gray-600">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-red-600"></div>
+            <span>और समाचार लोड हो रहे हैं...</span>
           </div>
         </div>
-      ) : (
-        renderNewsWithAds()
       )}
 
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      {/* End of Feed Indicator */}
+      {!hasMore && sortedNews.length > 0 && (
+        <div className="text-center py-8">
+          <div className="inline-flex items-center space-x-2 text-gray-500">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span>सभी समाचार देख लिए गए हैं</span>
+          </div>
+        </div>
+      )}
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   );
 };
