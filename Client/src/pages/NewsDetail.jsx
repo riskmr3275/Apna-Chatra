@@ -532,7 +532,7 @@ ${title} के संबंध में यह एक महत्वपूर
                         className="w-8 h-8 md:w-10 md:h-10 object-contain"
                       />
                       <div className="text-sm md:text-base">
-                        <div className="font-bold text-gray-800">अपना छत्रा न्यूज़</div>
+                        <div className="font-bold text-gray-800">अपना चतरा न्यूज़</div>
                         <div className="text-xs text-gray-500">विश्वसनीय समाचार का स्रोत</div>
                       </div>
                     </div>

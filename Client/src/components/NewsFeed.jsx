@@ -23,20 +23,30 @@ const NewsFeed = ({ filter, searchQuery }) => {
   const observerRef = useRef();
   const lastNewsElementRef = useRef();
 
-  // Initialize news data on component mount
+  // Initialize news data on component mount - optimized to prevent unnecessary calls
   useEffect(() => {
     const initializeNews = async () => {
-      const news = await getNews();
-      setDisplayedNews(news);
+      try {
+        console.log('Initializing news data...');
+        const news = await getNews();
+        console.log('News received:', news?.length || 0, 'articles');
+        if (news && news.length > 0) {
+          setDisplayedNews(news);
+        }
+      } catch (error) {
+        console.error('Error initializing news:', error);
+      }
     };
     
     initializeNews();
-  }, [getNews]);
+  }, [getNews]); // Include getNews in dependencies
 
-  // Update displayed news when pagination changes
+  // Update displayed news when pagination changes - optimized
   useEffect(() => {
-    const paginatedNews = getPaginatedNews(currentPage);
-    setDisplayedNews(paginatedNews);
+    if (currentPage > 1) {
+      const paginatedNews = getPaginatedNews(currentPage);
+      setDisplayedNews(paginatedNews);
+    }
   }, [currentPage, getPaginatedNews]);
 
   // Infinite scroll observer

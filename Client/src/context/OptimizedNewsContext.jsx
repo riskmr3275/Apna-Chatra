@@ -17,22 +17,20 @@ export const NewsProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [lastFetchTime, setLastFetchTime] = useState(null);
-
-  // Cache duration: 10 minutes (increased to reduce API calls)
-  const CACHE_DURATION = 10 * 60 * 1000;
-  const ITEMS_PER_PAGE = 20;
-  
-  // Request throttling
   const [isRequestInProgress, setIsRequestInProgress] = useState(false);
+
+  // Cache duration: 15 minutes (increased to reduce API calls)
+  const CACHE_DURATION = 15 * 60 * 1000;
+  const ITEMS_PER_PAGE = 20;
 
   // News API configuration
   const NEWS_API_KEY = 'eadd716dc08c44698de8f9a4bbbce2f3';
   
-  // Optimized API endpoints - Reduced to essential sources only
+  // Optimized API endpoints - Only 3 essential sources to reduce requests
   const OPTIMIZED_NEWS_ENDPOINTS = [
     {
       name: 'India Top Headlines',
-      url: `https://newsapi.org/v2/top-headlines?country=in&pageSize=50&apiKey=${NEWS_API_KEY}`,
+      url: `https://newsapi.org/v2/top-headlines?country=in&pageSize=60&apiKey=${NEWS_API_KEY}`,
       category: 'सामान्य',
       priority: 1
     },
@@ -53,12 +51,12 @@ export const NewsProvider = ({ children }) => {
   // Helper functions
   const formatNewsData = (articles, defaultCategory = 'व्यापार') => {
     return articles.map((article, index) => ({
-      id: Date.now() + Math.random() * 1000 + index, // More unique ID
+      id: Date.now() + Math.random() * 1000 + index,
       title: article.title || 'No Title Available',
       image: article.urlToImage || '/temp.webp',
       description: article.description || 'No description available',
       category: getCategoryInHindi(article.source?.name, defaultCategory),
-      location: getLocationFromSource(article.source?.name || 'US'),
+      location: getLocationFromSource(article.source?.name || 'India'),
       tags: generateTags(article.title || '', article.description || ''),
       timestamp: formatTimestamp(article.publishedAt),
       reporter: article.author || article.source?.name || 'News Desk',
@@ -77,14 +75,10 @@ export const NewsProvider = ({ children }) => {
     const categories = {
       'Bloomberg': 'व्यापार',
       'CNBC': 'व्यापार',
-      'Wall Street Journal': 'व्यापार',
-      'Financial Times': 'व्यापार',
-      'Fortune': 'व्यापार',
-      'Business Insider': 'व्यापार',
       'TechCrunch': 'तकनीक',
-      'CNET': 'तकनीक',
-      'Apple': 'तकनीक',
-      'The Verge': 'तकनीक'
+      'The Times of India': 'सामान्य',
+      'Hindustan Times': 'सामान्य',
+      'Economic Times': 'व्यापार'
     };
     return categories[sourceName] || defaultCategory;
   };
@@ -93,12 +87,10 @@ export const NewsProvider = ({ children }) => {
     const locations = {
       'Bloomberg': 'न्यूयॉर्क',
       'CNBC': 'न्यूयॉर्क',
-      'Wall Street Journal': 'न्यूयॉर्क',
-      'Financial Times': 'लंदन',
-      'Fortune': 'न्यूयॉर्क',
-      'Business Insider': 'न्यूयॉर्क',
       'TechCrunch': 'सैन फ्रांसिस्को',
-      'CNET': 'सैन फ्रांसिस्को'
+      'The Times of India': 'मुंबई',
+      'Hindustan Times': 'नई दिल्ली',
+      'Economic Times': 'मुंबई'
     };
     return locations[sourceName] || 'भारत';
   };
@@ -107,13 +99,15 @@ export const NewsProvider = ({ children }) => {
     const text = `${title} ${description}`.toLowerCase();
     const commonTags = [];
     
-    if (text.includes('apple')) commonTags.push('Apple');
+    if (text.includes('apple') || text.includes('iphone')) commonTags.push('Apple');
     if (text.includes('ai') || text.includes('artificial intelligence')) commonTags.push('AI');
     if (text.includes('tech') || text.includes('technology')) commonTags.push('तकनीक');
     if (text.includes('business') || text.includes('company')) commonTags.push('व्यापार');
     if (text.includes('stock') || text.includes('market')) commonTags.push('शेयर बाजार');
+    if (text.includes('sports') || text.includes('cricket')) commonTags.push('खेल');
+    if (text.includes('politics') || text.includes('election')) commonTags.push('राजनीति');
     
-    return commonTags.length > 0 ? commonTags : ['व्यापार', 'समाचार'];
+    return commonTags.length > 0 ? commonTags : ['समाचार'];
   };
 
   const formatTimestamp = (publishedAt) => {
@@ -128,13 +122,55 @@ export const NewsProvider = ({ children }) => {
     return `${diffInDays} दिन पहले`;
   };
 
+  // Static fallback news for when API fails
+  const getStaticFallbackNews = () => [
+    {
+      id: 1,
+      title: "भारत में तकनीकी क्रांति: AI और मशीन लर्निंग का बढ़ता प्रभाव",
+      image: "/temp.webp",
+      description: "भारतीय तकनीकी कंपनियां AI और मशीन लर्निंग में नए मानक स्थापित कर रही हैं।",
+      category: "तकनीक",
+      location: "बेंगलुरु",
+      tags: ["AI", "तकनीक", "भारत"],
+      timestamp: "2 घंटे पहले",
+      reporter: "टेक डेस्क",
+      isFollowing: false,
+      likes: 245,
+      comments: 32,
+      shares: 18,
+      isBookmarked: false,
+      isTrending: true,
+      url: "#",
+      source: "Tech News"
+    },
+    {
+      id: 2,
+      title: "शेयर बाजार में तेजी: सेंसेक्स नए रिकॉर्ड पर",
+      image: "/temp.webp",
+      description: "भारतीय शेयर बाजार में निवेशकों का भरोसा बढ़ा, सेंसेक्स ने छुआ नया शिखर।",
+      category: "व्यापार",
+      location: "मुंबई",
+      tags: ["शेयर बाजार", "सेंसेक्स", "व्यापार"],
+      timestamp: "3 घंटे पहले",
+      reporter: "बिजनेस डेस्क",
+      isFollowing: true,
+      likes: 189,
+      comments: 25,
+      shares: 12,
+      isBookmarked: true,
+      isTrending: true,
+      url: "#",
+      source: "Business News"
+    }
+  ];
+
   // Check if cache is still valid
   const isCacheValid = useCallback(() => {
     if (!lastFetchTime || newsCache.length === 0) return false;
     return Date.now() - lastFetchTime < CACHE_DURATION;
   }, [lastFetchTime, newsCache.length]);
 
-  // Optimized news fetching with reduced API calls
+  // Optimized news fetching with minimal API calls
   const fetchNewsFromAPIs = useCallback(async () => {
     // Prevent multiple simultaneous requests
     if (isRequestInProgress) {
@@ -172,24 +208,18 @@ export const NewsProvider = ({ children }) => {
           }
           
           // Add small delay between requests to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 200));
+          await new Promise(resolve => setTimeout(resolve, 300));
           
         } catch (err) {
           console.error(`Error fetching from ${endpoint.name}:`, err);
-          continue; // Continue with next endpoint
+          continue;
         }
       }
 
-      // If we still don't have enough articles, add some static fallback
-      if (allArticles.length < 10) {
+      // If we still don't have enough articles, add static fallback
+      if (allArticles.length < 20) {
         console.log('Adding static fallback articles');
         allArticles = [...allArticles, ...getStaticFallbackNews()];
-      }
-
-      // Ensure we always have at least some news
-      if (allArticles.length === 0) {
-        console.log('No articles found, using only static fallback');
-        allArticles = getStaticFallbackNews();
       }
 
       // Remove duplicates based on title
@@ -204,9 +234,9 @@ export const NewsProvider = ({ children }) => {
       setCurrentPage(1);
       setHasMore(shuffledArticles.length > ITEMS_PER_PAGE);
 
-      console.log(`✅ Successfully cached ${shuffledArticles.length} unique articles`);
+      console.log(`✅ Successfully cached ${shuffledArticles.length} articles`);
       return shuffledArticles;
-      
+
     } catch (err) {
       console.error('Error fetching news:', err);
       setError('समाचार लोड करने में समस्या');
@@ -215,130 +245,11 @@ export const NewsProvider = ({ children }) => {
       const fallbackNews = getStaticFallbackNews();
       setNewsCache(fallbackNews);
       return fallbackNews;
-      
     } finally {
       setLoading(false);
       setIsRequestInProgress(false);
     }
-  }, [isRequestInProgress, newsCache]);
-
-  // Static fallback news for when APIs fail
-  const getStaticFallbackNews = () => [
-    {
-      id: Date.now() + 1,
-      title: "भारत में तकनीकी क्रांति: AI और डिजिटल इंडिया का नया दौर",
-      image: "/temp.webp",
-      description: "भारत में आर्टिफिशियल इंटेलिजेंस और डिजिटल तकनीक के क्षेत्र में हो रहे नवाचार।",
-      category: "तकनीक",
-      location: "नई दिल्ली",
-      tags: ["तकनीक", "AI", "डिजिटल इंडिया"],
-      timestamp: "1 घंटे पहले",
-      reporter: "टेक डेस्क",
-      isFollowing: false,
-      likes: 245,
-      comments: 32,
-      shares: 18,
-      isBookmarked: false,
-      isTrending: true,
-      url: "#",
-      source: "अपना छत्रा न्यूज़"
-    },
-    {
-      id: Date.now() + 2,
-      title: "शिक्षा क्षेत्र में सुधार: नई नीति के तहत बदलाव",
-      image: "/temp.webp",
-      description: "राष्ट्रीय शिक्षा नीति के तहत स्कूलों और कॉलेजों में हो रहे सकारात्मक बदलाव।",
-      category: "शिक्षा",
-      location: "भारत",
-      tags: ["शिक्षा", "नीति", "सुधार"],
-      timestamp: "2 घंटे पहले",
-      reporter: "शिक्षा संवाददाता",
-      isFollowing: true,
-      likes: 189,
-      comments: 25,
-      shares: 12,
-      isBookmarked: false,
-      isTrending: false,
-      url: "#",
-      source: "अपना छत्रा न्यूज़"
-    },
-    {
-      id: Date.now() + 3,
-      title: "स्वास्थ्य सेवा में सुधार: नई योजनाओं का शुभारंभ",
-      image: "/temp.webp",
-      description: "सरकार द्वारा स्वास्थ्य सेवा में सुधार के लिए नई योजनाओं की घोषणा।",
-      category: "स्वास्थ्य",
-      location: "मुंबई",
-      tags: ["स्वास्थ्य", "योजना", "सरकार"],
-      timestamp: "3 घंटे पहले",
-      reporter: "स्वास्थ्य संवाददाता",
-      isFollowing: false,
-      likes: 156,
-      comments: 18,
-      shares: 9,
-      isBookmarked: true,
-      isTrending: false,
-      url: "#",
-      source: "अपना छत्रा न्यूज़"
-    },
-    {
-      id: Date.now() + 4,
-      title: "खेल जगत की बड़ी खबर: भारतीय टीम की शानदार जीत",
-      image: "/temp.webp",
-      description: "अंतर्राष्ट्रीय मैच में भारतीय टीम की शानदार प्रदर्शन और जीत।",
-      category: "खेल",
-      location: "कोलकाता",
-      tags: ["खेल", "भारत", "जीत"],
-      timestamp: "4 घंटे पहले",
-      reporter: "खेल संवाददाता",
-      isFollowing: true,
-      likes: 312,
-      comments: 45,
-      shares: 23,
-      isBookmarked: false,
-      isTrending: true,
-      url: "#",
-      source: "अपना छत्रा न्यूज़"
-    },
-    {
-      id: Date.now() + 5,
-      title: "व्यापार जगत में नया कीर्तिमान: स्टार्टअप की सफलता",
-      image: "/temp.webp",
-      description: "भारतीय स्टार्टअप कंपनी ने अंतर्राष्ट्रीय बाजार में नया कीर्तिमान स्थापित किया।",
-      category: "व्यापार",
-      location: "बेंगलुरु",
-      tags: ["व्यापार", "स्टार्टअप", "सफलता"],
-      timestamp: "5 घंटे पहले",
-      reporter: "व्यापार संवाददाता",
-      isFollowing: false,
-      likes: 198,
-      comments: 28,
-      shares: 15,
-      isBookmarked: false,
-      isTrending: false,
-      url: "#",
-      source: "अपना छत्रा न्यूज़"
-    },
-    {
-      id: Date.now() + 6,
-      title: "पर्यावरण संरक्षण: हरित ऊर्जा की नई पहल",
-      image: "/temp.webp",
-      description: "पर्यावरण संरक्षण के लिए हरित ऊर्जा और सौर ऊर्जा की नई परियोजनाएं।",
-      category: "पर्यावरण",
-      location: "चेन्नई",
-      tags: ["पर्यावरण", "हरित ऊर्जा", "सौर ऊर्जा"],
-      timestamp: "6 घंटे पहले",
-      reporter: "पर्यावरण संवाददाता",
-      isFollowing: true,
-      likes: 167,
-      comments: 22,
-      shares: 11,
-      isBookmarked: true,
-      isTrending: false,
-      url: "#",
-      source: "अपना छत्रा न्यूज़"
-    }
-  ];
+  }, [newsCache, isRequestInProgress]);
 
   // Get paginated news
   const getPaginatedNews = useCallback((page = 1) => {
@@ -349,7 +260,7 @@ export const NewsProvider = ({ children }) => {
 
   // Load more news (for infinite scroll)
   const loadMoreNews = useCallback(() => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore || isRequestInProgress) return;
 
     const nextPage = currentPage + 1;
     const totalAvailable = newsCache.length;
@@ -360,7 +271,7 @@ export const NewsProvider = ({ children }) => {
     }
 
     setCurrentPage(nextPage);
-  }, [currentPage, loading, hasMore, newsCache.length]);
+  }, [currentPage, loading, hasMore, newsCache.length, isRequestInProgress]);
 
   // Get initial news (with caching)
   const getNews = useCallback(async () => {
@@ -370,7 +281,7 @@ export const NewsProvider = ({ children }) => {
     }
     
     console.log('Fetching fresh news data');
-    await fetchNewsFromAPIs();
+    const freshNews = await fetchNewsFromAPIs();
     return getPaginatedNews(1);
   }, [isCacheValid, getPaginatedNews, fetchNewsFromAPIs]);
 
@@ -380,6 +291,7 @@ export const NewsProvider = ({ children }) => {
     setLastFetchTime(null);
     setCurrentPage(1);
     setHasMore(true);
+    setIsRequestInProgress(false);
     return await fetchNewsFromAPIs();
   }, [fetchNewsFromAPIs]);
 
@@ -389,7 +301,6 @@ export const NewsProvider = ({ children }) => {
     hasMore,
     loading,
     error,
-    isRequestInProgress,
     getNews,
     loadMoreNews,
     refreshNews,
