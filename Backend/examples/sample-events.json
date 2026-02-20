@@ -1,0 +1,62 @@
+{
+  "article.published": {
+    "event": "article.published",
+    "data": {
+      "articleId": "653ab12df456789012345678",
+      "authorId": "653ab100e789012345678901",
+      "title": "AI Revolution in Journalism: How Machine Learning is Transforming News",
+      "category": "technology",
+      "publishedAt": "2025-10-21T10:00:00Z",
+      "isBreaking": false,
+      "isFeatured": true
+    },
+    "timestamp": "2025-10-21T10:00:00Z"
+  },
+  
+  "user.registered": {
+    "event": "user.registered",
+    "data": {
+      "userId": "653ab100e789012345678901",
+      "email": "john.doe@example.com",
+      "role": "user",
+      "profile": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "location": "New York, USA"
+      }
+    },
+    "timestamp": "2025-10-21T09:30:00Z"
+  },
+  
+  "comment.created": {
+    "event": "comment.created",
+    "data": {
+      "commentId": "653ab15df456789012345679",
+      "articleId": "653ab12df456789012345678",
+      "authorId": "653ab100e789012345678901",
+      "content": "Great article! Very insightful analysis on AI in journalism.",
+      "parentComment": null
+    },
+    "timestamp": "2025-10-21T11:15:00Z"
+  },
+  
+  "article.liked": {
+    "event": "article.liked",
+    "data": {
+      "articleId": "653ab12df456789012345678",
+      "userId": "653ab100e789012345678901",
+      "authorId": "653ab101e789012345678902"
+    },
+    "timestamp": "2025-10-21T11:30:00Z"
+  },
+  
+  "user.reporter.followed": {
+    "event": "user.reporter.followed",
+    "data": {
+      "userId": "653ab100e789012345678901",
+      "reporterId": "653ab101e789012345678902",
+      "reporterName": "Jane Smith"
+    },
+    "timestamp": "2025-10-21T12:00:00Z"
+  }
+}

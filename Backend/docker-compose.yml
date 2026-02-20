@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+  # MongoDB instances
+  mongodb-auth:
+    image: mongo:7
+    container_name: mongodb-auth
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: auth_db
+    volumes:
+      - auth_data:/data/db
+
+  mongodb-user:
+    image: mongo:7
+    container_name: mongodb-user
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_DATABASE: user_db
+    volumes:
+      - user_data:/data/db
+
+  mongodb-article:
+    image: mongo:7
+    container_name: mongodb-article
+    ports:
+      - "27019:27017"
+    environment:
+      MONGO_INITDB_DATABASE: article_db
+    volumes:
+      - article_data:/data/db
+
+  mongodb-analytics:
+    image: mongo:7
+    container_name: mongodb-analytics
+    ports:
+      - "27020:27017"
+    environment:
+      MONGO_INITDB_DATABASE: analytics_db
+    volumes:
+      - analytics_data:/data/db
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - redis
+      - rabbitmq
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mongodb-auth
+      - rabbitmq
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+
+  # User Service
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mongodb-user
+      - rabbitmq
+    volumes:
+      - ./user-service:/app
+      - /app/node_modules
+
+  # Reporter Service
+  reporter-service:
+    build: ./reporter-service
+    container_name: reporter-service
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mongodb-user
+      - rabbitmq
+    volumes:
+      - ./reporter-service:/app
+      - /app/node_modules
+
+  # Admin Service
+  admin-service:
+    build: ./admin-service
+    container_name: admin-service
+    ports:
+      - "3004:3004"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mongodb-user
+      - rabbitmq
+    volumes:
+      - ./admin-service:/app
+      - /app/node_modules
+
+  # Article Service
+  article-service:
+    build: ./article-service
+    container_name: article-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mongodb-article
+      - rabbitmq
+    volumes:
+      - ./article-service:/app
+      - /app/node_modules
+
+  # Notification Service
+  notification-service:
+    build: ./notification-service
+    container_name: notification-service
+    ports:
+      - "3006:3006"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./notification-service:/app
+      - /app/node_modules
+
+  # Analytics Service
+  analytics-service:
+    build: ./analytics-service
+    container_name: analytics-service
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - mongodb-analytics
+      - rabbitmq
+    volumes:
+      - ./analytics-service:/app
+      - /app/node_modules
+
+volumes:
+  auth_data:
+  user_data:
+  article_data:
+  analytics_data:
+  rabbitmq_data:
+  redis_data:

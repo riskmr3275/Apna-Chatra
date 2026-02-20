@@ -1,0 +1,20 @@
+{
+  "name": "news-website-backend",
+  "version": "1.0.0",
+  "description": "Microservices backend for News Website",
+  "scripts": {
+    "install-all": "npm run install-gateway && npm run install-auth && npm run install-user && npm run install-article && npm run install-notification",
+    "install-gateway": "cd api-gateway && npm install",
+    "install-auth": "cd auth-service && npm install",
+    "install-user": "cd user-service && npm install",
+    "install-article": "cd article-service && npm install",
+    "install-notification": "cd notification-service && npm install",
+    "dev": "docker-compose up --build",
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "logs": "docker-compose logs -f"
+  },
+  "keywords": ["microservices", "news", "nodejs", "express", "mongodb"],
+  "author": "Your Name",
+  "license": "MIT"
+}
